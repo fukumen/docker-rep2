@@ -92,6 +92,11 @@ https://your.domain.example.com:8443 {
         path *.js
     }
     header @js_files Content-Type "application/javascript; charset=Shift_JIS"
+
+    @css_files {
+        path *.css
+    }
+    header @css_files Content-Type "text/css; charset=Shift_JIS"
 }
 ```
 
