@@ -16,17 +16,23 @@ RUN apk --update-cache add \
             gettext-dev \
             jpeg-dev \
             libpng-dev \
-            zlib-dev
+            zlib-dev \
+            icu-dev \
+            libzip-dev \
+            freetype-dev \
+            libxml2-dev
 
 RUN if [ "$USE_EXTRA" = "true" ]; then \
         apk add --no-cache $PHPIZE_DEPS imagemagick-dev libtool postgresql-dev && \
         pecl install imagick && \
         docker-php-ext-enable imagick && \
-        docker-php-ext-install -j$(nproc) pdo_mysql pdo_pgsql exif; \
-    fi && \
-    docker-php-ext-configure gd --with-jpeg && \
-    docker-php-ext-install -j$(nproc) gd
-RUN docker-php-ext-install -j$(nproc) gettext
+        docker-php-ext-configure gd --with-jpeg --with-freetype && \
+        docker-php-ext-install -j$(nproc) gd pdo_mysql pdo_pgsql exif zip bcmath xml simplexml; \
+    else \
+        docker-php-ext-configure gd --with-jpeg && \
+        docker-php-ext-install -j$(nproc) gd bcmath; \
+    fi
+RUN docker-php-ext-install -j$(nproc) gettext intl
 
 WORKDIR /tmp
 
@@ -84,10 +90,11 @@ RUN apk --no-cache add \
             perl-lwp-protocol-https \
             ca-certificates \
             zlib \
-            tzdata
+            tzdata \
+            icu-libs
 
 RUN if [ "$USE_EXTRA" = "true" ]; then \
-        apk --no-cache add imagemagick libpq; \
+        apk --no-cache add imagemagick libpq libzip freetype libxml2; \
     fi
 
 COPY --from=caddy-upstream /usr/bin/caddy /usr/bin/caddy

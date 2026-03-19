@@ -106,8 +106,15 @@ memory_limitはデフォルトで128Mになっています。docker compose logs
 
 ### PostgreSQL/MySQLやExif、imagickなど追加機能を使用したい場合
 
-標準では必要最小限の機能（SQLite, GDなど）のみを使用するイメージがプルかビルドされます。
-DBにPostgreSQLやMySQLを利用したり、ic2でExif情報表示やimagickを使用したい場合、`docker-compose.extra.yml`を参考に`docker-compose.override.yml`を用意しておけば、各種追加機能を含む「全部入り」イメージでプルかビルドしてくれるようになります。
+標準構成でも基本的な機能（SQLite, GD）は利用可能です。
+さらに以下の機能を使用したい場合、`docker-compose.extra.yml`を参考に`docker-compose.override.yml`を用意しておくことで、各種追加機能を含む「全部入り」イメージ `rep2-extra` を使用してください。
+
+- ImageMagickを使用したい場合
+- AASを使用したい場合
+- Exif表示を使用したい場合
+- PostgreSQLやMySQLを使用したい場合
+- IC2のZIPで一括ダウンロードを使用したい場合
+- RSSリーダー機能（デフォルト無効）をしたい場合
 
 外部データベース（PostgreSQL/MySQL）の具体的な設定方法については、[doc/database.md](doc/database.md) を参照してください。
 
