@@ -7,9 +7,9 @@ mkdir -p /ext/conf /ext/data /ext/rep2/ic "$XDG_CONFIG_HOME" "$XDG_DATA_HOME"
 cp -Rn /var/www/conf.orig/* /ext/conf/
 cp -Rn /var/www/data.orig/* /ext/data/
 
-su-exec www-data php /var/www/scripts/ic2.php setup
-
 chown -R www-data:www-data /ext
+
+su-exec www-data php /var/www/scripts/ic2.php setup | iconv -f SHIFT_JIS -t UTF-8
 
 crond
 
