@@ -104,10 +104,12 @@ memory_limitはデフォルトで128Mになっています。docker compose logs
 
 メモリ消費量を計測したいときはphp-fpm.confを変更したい場合、www-local.confのようなファイルを用意してdocker-compose.ymlでバインドマウントするよう記載してください。
 
-### ic2でimagickを使用したい場合
+### PostgreSQL/MySQLやExif、imagickなど追加機能を使用したい場合
 
-標準ではic2でgdを使用するイメージがプルかビルドされます。
-ic2でimagickを使用したい場合、docker-compose.imagick.ymlを参考にdocker-compose.override.ymlを用意しておけば、いつもimagickでプルかビルドしてくれるようになります。
+標準では必要最小限の機能（SQLite, GDなど）のみを使用するイメージがプルかビルドされます。
+DBにPostgreSQLやMySQLを利用したり、ic2でExif情報表示やimagickを使用したい場合、`docker-compose.extra.yml`を参考に`docker-compose.override.yml`を用意しておけば、各種追加機能を含む「全部入り」イメージでプルかビルドしてくれるようになります。
+
+外部データベース（PostgreSQL/MySQL）の具体的な設定方法については、[doc/database.md](doc/database.md) を参照してください。
 
 ### caddy
 

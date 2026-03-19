@@ -1,4 +1,5 @@
 rep2-data/
+rep2-db/
 caddy-local/
 docker-compose.override.yml
 php-local.ini

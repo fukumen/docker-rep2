@@ -21,10 +21,10 @@ jobs:
           delete-only-untagged-versions: 'true'
           # token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Delete untagged images for rep2-imagick
+      - name: Delete untagged images for rep2-extra
         uses: actions/delete-package-versions@v5
         with:
-          package-name: 'rep2-imagick'
+          package-name: 'rep2-extra'
           package-type: 'container'
           min-versions-to-keep: 30
           delete-only-untagged-versions: 'true'

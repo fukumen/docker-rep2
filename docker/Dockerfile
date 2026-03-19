@@ -6,7 +6,7 @@ FROM caddy:${CADDY_VERSION}-alpine AS caddy-upstream
 
 FROM php:${PHP_VERSION}-fpm-alpine${ALPINE_VERSION} AS builder
 ARG DEBUG
-ARG USE_IMAGICK="false"
+ARG USE_EXTRA="false"
 
 ARG COMPOSER_VERSION="2.9.4"
 
@@ -18,14 +18,14 @@ RUN apk --update-cache add \
             libpng-dev \
             zlib-dev
 
-RUN if [ "$USE_IMAGICK" = "true" ]; then \
-        apk add --no-cache $PHPIZE_DEPS imagemagick-dev libtool && \
+RUN if [ "$USE_EXTRA" = "true" ]; then \
+        apk add --no-cache $PHPIZE_DEPS imagemagick-dev libtool postgresql-dev && \
         pecl install imagick && \
-        docker-php-ext-enable imagick; \
-    else \
-        docker-php-ext-configure gd --with-jpeg && \
-        docker-php-ext-install -j$(nproc) gd; \
-    fi
+        docker-php-ext-enable imagick && \
+        docker-php-ext-install -j$(nproc) pdo_mysql pdo_pgsql exif; \
+    fi && \
+    docker-php-ext-configure gd --with-jpeg && \
+    docker-php-ext-install -j$(nproc) gd
 RUN docker-php-ext-install -j$(nproc) gettext
 
 WORKDIR /tmp
@@ -56,7 +56,7 @@ FROM php:${PHP_VERSION}-fpm-alpine${ALPINE_VERSION}
 LABEL org.opencontainers.image.authors="Abe Masahiro <pen@thcomp.org>" \
     org.opencontainers.image.source="https://github.com/pen/docker-rep2"
 ARG DEBUG
-ARG USE_IMAGICK="false"
+ARG USE_EXTRA="false"
 
 ARG REPO_HASH
 ARG REPO_LOG
@@ -86,8 +86,8 @@ RUN apk --no-cache add \
             zlib \
             tzdata
 
-RUN if [ "$USE_IMAGICK" = "true" ]; then \
-        apk --no-cache add imagemagick; \
+RUN if [ "$USE_EXTRA" = "true" ]; then \
+        apk --no-cache add imagemagick libpq; \
     fi
 
 COPY --from=caddy-upstream /usr/bin/caddy /usr/bin/caddy

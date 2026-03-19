@@ -87,8 +87,8 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/rep2:latest
 #            ghcr.io/${{ github.repository_owner }}/rep2:${{ steps.date.outputs.today }}
 
-      # Build rep2-imagick (With ImageMagick)
-      - name: Build and push rep2-imagick
+      # Build rep2-extra (With Extra Packages)
+      - name: Build and push rep2-extra
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -100,7 +100,7 @@ jobs:
             2chproxy.pl=https://github.com/fukumen/2chproxy.pl.git#always-https-for-2ch-config
           build-args: |
             DEBUG=off
-            USE_IMAGICK=true
+            USE_EXTRA=true
             REPO_HASH=${{ steps.meta.outputs.REPO_HASH }}
             REPO_LOG=${{ steps.meta.outputs.REPO_LOG }}
             REP2_HASH=${{ steps.meta.outputs.REP2_HASH }}
@@ -108,5 +108,5 @@ jobs:
             RUN_ID=${{ github.run_id }}
             RUN_NUMBER=${{ github.run_number }}
           tags: |
-            ghcr.io/${{ github.repository_owner }}/rep2-imagick:latest
-#            ghcr.io/${{ github.repository_owner }}/rep2-imagick:${{ steps.date.outputs.today }}
+            ghcr.io/${{ github.repository_owner }}/rep2-extra:latest
+#            ghcr.io/${{ github.repository_owner }}/rep2-extra:${{ steps.date.outputs.today }}

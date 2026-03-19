@@ -1,7 +1,0 @@
-services:
-  rep2php8:
-    build:
-      args:
-        USE_IMAGICK: "true"
-    # image: rep2-imagick:latest
-    image: ghcr.io/fukumen/rep2-imagick:latest
