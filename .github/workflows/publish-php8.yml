@@ -60,9 +60,9 @@ jobs:
           cd ..
           rm -rf temp_p2
 
-      # - name: Generate Date Tag
-      #   id: date
-      #   run: echo "::set-output name=today::$(date +'%y%m%d')"
+      - name: Generate Date Tag
+        id: date
+        run: echo "today=$(TZ=Asia/Tokyo date +'%Y%m%d-%H%M')" >> "$GITHUB_OUTPUT"
 
       # Build rep2 (Standard)
       - name: Build and push rep2
@@ -76,7 +76,6 @@ jobs:
             p2-rep2=https://github.com/fukumen/p2-php.git#php8-merge-mbstring
             2chproxy.pl=https://github.com/fukumen/2chproxy.pl.git#always-https-for-2ch-config
           build-args: |
-            DEBUG=off
             REPO_HASH=${{ steps.meta.outputs.REPO_HASH }}
             REPO_LOG=${{ steps.meta.outputs.REPO_LOG }}
             REP2_HASH=${{ steps.meta.outputs.REP2_HASH }}
@@ -85,7 +84,7 @@ jobs:
             RUN_NUMBER=${{ github.run_number }}
           tags: |
             ghcr.io/${{ github.repository_owner }}/rep2:latest
-#            ghcr.io/${{ github.repository_owner }}/rep2:${{ steps.date.outputs.today }}
+            ghcr.io/${{ github.repository_owner }}/rep2:${{ steps.date.outputs.today }}
 
       # Build rep2-extra (With Extra Packages)
       - name: Build and push rep2-extra
@@ -99,8 +98,7 @@ jobs:
             p2-rep2=https://github.com/fukumen/p2-php.git#php8-merge-mbstring
             2chproxy.pl=https://github.com/fukumen/2chproxy.pl.git#always-https-for-2ch-config
           build-args: |
-            DEBUG=off
-            USE_EXTRA=true
+            FLAG_EXTRA=true
             REPO_HASH=${{ steps.meta.outputs.REPO_HASH }}
             REPO_LOG=${{ steps.meta.outputs.REPO_LOG }}
             REP2_HASH=${{ steps.meta.outputs.REP2_HASH }}
@@ -109,4 +107,4 @@ jobs:
             RUN_NUMBER=${{ github.run_number }}
           tags: |
             ghcr.io/${{ github.repository_owner }}/rep2-extra:latest
-#            ghcr.io/${{ github.repository_owner }}/rep2-extra:${{ steps.date.outputs.today }}
+            ghcr.io/${{ github.repository_owner }}/rep2-extra:${{ steps.date.outputs.today }}

@@ -193,8 +193,9 @@ projdir/
 ソースコードが用意できたら以下のように実行してください。
 
 ```shell
-docker compose -f docker-compose.yml -f docker-compose.debug.yml -f docker-compose.override.yml build
-docker compose -f docker-compose.yml -f docker-compose.debug.yml -f docker-compose.override.yml up -d
+./build.py build-base
+./build.py build
+./build.py --noremote up
 ```
 
 これらの用意をしてvscodeでrep2.code-workspaceを開いてください。

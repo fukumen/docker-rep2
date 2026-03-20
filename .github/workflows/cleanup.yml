@@ -1,4 +1,4 @@
-name: Cleanup Untagged Images
+name: Cleanup Old Images
 
 on:
   workflow_dispatch:
@@ -17,15 +17,57 @@ jobs:
         with:
           package-name: 'rep2'
           package-type: 'container'
-          min-versions-to-keep: 30
           delete-only-untagged-versions: 'true'
-          # token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Keep only 3 latest tagged images for rep2
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: 'rep2'
+          package-type: 'container'
+          delete-only-untagged-versions: 'false'
+          min-versions-to-keep: 3
 
       - name: Delete untagged images for rep2-extra
         uses: actions/delete-package-versions@v5
         with:
           package-name: 'rep2-extra'
           package-type: 'container'
-          min-versions-to-keep: 30
           delete-only-untagged-versions: 'true'
-          # token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Keep only 3 latest tagged images for rep2-extra
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: 'rep2-extra'
+          package-type: 'container'
+          delete-only-untagged-versions: 'false'
+          min-versions-to-keep: 3
+
+      - name: Delete untagged images for rep2-base
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: 'rep2-base'
+          package-type: 'container'
+          delete-only-untagged-versions: 'true'
+
+      - name: Keep only 3 latest tagged images for rep2-base
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: 'rep2-base'
+          package-type: 'container'
+          delete-only-untagged-versions: 'false'
+          min-versions-to-keep: 3
+
+      - name: Delete untagged images for rep2-base-extra
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: 'rep2-base-extra'
+          package-type: 'container'
+          delete-only-untagged-versions: 'true'
+
+      - name: Keep only 3 latest tagged images for rep2-base-extra
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: 'rep2-base-extra'
+          package-type: 'container'
+          delete-only-untagged-versions: 'false'
+          min-versions-to-keep: 3

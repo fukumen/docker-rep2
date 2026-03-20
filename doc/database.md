@@ -11,9 +11,6 @@
 ```yaml
 services:
   rep2php8:
-    build:
-      args:
-        USE_EXTRA: "true"
     image: ghcr.io/fukumen/rep2-extra:latest
     depends_on:
       db:

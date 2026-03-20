@@ -1,6 +1,0 @@
-services:
-  rep2php8:
-    build:
-      additional_contexts:
-        p2-rep2: ../p2-php
-        2chproxy.pl: ../2chproxy.pl
