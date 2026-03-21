@@ -56,9 +56,33 @@ jobs:
           
           echo "REP2_HASH=${REP2_HASH}" >> "$GITHUB_OUTPUT"
           echo "REP2_LOG=$(echo -n "$REP2_RAW_LOG" | base64 -w 0)" >> "$GITHUB_OUTPUT"
+          echo "REP2_LOG_PLAIN=${REP2_RAW_LOG}" >> "$GITHUB_OUTPUT"
           
           cd ..
           rm -rf temp_p2
+
+      - name: Build local image for version extraction
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile
+          platforms: linux/amd64
+          load: true
+          tags: rep2:local
+          build-contexts: |
+            p2-rep2=https://github.com/fukumen/p2-php.git#php8-merge-mbstring
+            2chproxy.pl=https://github.com/fukumen/2chproxy.pl.git#always-https-for-2ch-config
+
+      - name: Extract versions from image
+        id: versions
+        run: |
+          ALPINE_VER=$(docker run --rm rep2:local cat /etc/alpine-release)
+          PHP_VER=$(docker run --rm rep2:local php -r 'echo PHP_VERSION;')
+          CADDY_VER=$(docker run --rm rep2:local caddy version | awk '{print $1}')
+          
+          echo "alpine=${ALPINE_VER}" >> "$GITHUB_OUTPUT"
+          echo "php=${PHP_VER}" >> "$GITHUB_OUTPUT"
+          echo "caddy=${CADDY_VER}" >> "$GITHUB_OUTPUT"
 
       - name: Generate Date Tag
         id: date
@@ -85,6 +109,8 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/rep2:latest
             ghcr.io/${{ github.repository_owner }}/rep2:${{ steps.date.outputs.today }}
+          labels: |
+            org.opencontainers.image.description=Alpine: ${{ steps.versions.outputs.alpine }} / PHP: ${{ steps.versions.outputs.php }} / Caddy: ${{ steps.versions.outputs.caddy }} / rep2: ${{ steps.meta.outputs.REP2_LOG_PLAIN }} (${{ steps.meta.outputs.REP2_HASH }})
 
       # Build rep2-extra (With Extra Packages)
       - name: Build and push rep2-extra
@@ -108,3 +134,5 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/rep2-extra:latest
             ghcr.io/${{ github.repository_owner }}/rep2-extra:${{ steps.date.outputs.today }}
+          labels: |
+            org.opencontainers.image.description=Alpine: ${{ steps.versions.outputs.alpine }} / PHP: ${{ steps.versions.outputs.php }} / Caddy: ${{ steps.versions.outputs.caddy }} / rep2: ${{ steps.meta.outputs.REP2_LOG_PLAIN }} (${{ steps.meta.outputs.REP2_HASH }})
