@@ -88,6 +88,20 @@ jobs:
         id: date
         run: echo "today=$(TZ=Asia/Tokyo date +'%Y%m%d-%H%M')" >> "$GITHUB_OUTPUT"
 
+      - name: Docker Meta
+        id: docker_meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ghcr.io/${{ github.repository_owner }}/rep2
+            ghcr.io/${{ github.repository_owner }}/rep2-extra
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.description=Alpine: ${{ steps.versions.outputs.alpine }} / PHP: ${{ steps.versions.outputs.php }} / Caddy: ${{ steps.versions.outputs.caddy }} / rep2: ${{ steps.meta.outputs.REP2_LOG_PLAIN }} (${{ steps.meta.outputs.REP2_HASH }})
+          annotations: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.description=Alpine: ${{ steps.versions.outputs.alpine }} / PHP: ${{ steps.versions.outputs.php }} / Caddy: ${{ steps.versions.outputs.caddy }} / rep2: ${{ steps.meta.outputs.REP2_LOG_PLAIN }} (${{ steps.meta.outputs.REP2_HASH }})
+
       # Build rep2 (Standard)
       - name: Build and push rep2
         uses: docker/build-push-action@v6
@@ -109,8 +123,9 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/rep2:latest
             ghcr.io/${{ github.repository_owner }}/rep2:${{ steps.date.outputs.today }}
-          annotations: |
-            org.opencontainers.image.description=Alpine: ${{ steps.versions.outputs.alpine }} / PHP: ${{ steps.versions.outputs.php }} / Caddy: ${{ steps.versions.outputs.caddy }} / rep2: ${{ steps.meta.outputs.REP2_LOG_PLAIN }} (${{ steps.meta.outputs.REP2_HASH }})
+          labels: ${{ steps.docker_meta.outputs.labels }}
+          annotations: ${{ steps.docker_meta.outputs.annotations }}
+          outputs: type=registry,oci-mediatypes=true
 
       # Build rep2-extra (With Extra Packages)
       - name: Build and push rep2-extra
@@ -134,5 +149,6 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/rep2-extra:latest
             ghcr.io/${{ github.repository_owner }}/rep2-extra:${{ steps.date.outputs.today }}
-          annotations: |
-            org.opencontainers.image.description=Alpine: ${{ steps.versions.outputs.alpine }} / PHP: ${{ steps.versions.outputs.php }} / Caddy: ${{ steps.versions.outputs.caddy }} / rep2: ${{ steps.meta.outputs.REP2_LOG_PLAIN }} (${{ steps.meta.outputs.REP2_HASH }})
+          labels: ${{ steps.docker_meta.outputs.labels }}
+          annotations: ${{ steps.docker_meta.outputs.annotations }}
+          outputs: type=registry,oci-mediatypes=true
