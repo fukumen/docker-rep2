@@ -6,20 +6,13 @@ on:
     - cron: '0 19 * * 0'
 
 jobs:
-  delete-untagged:
+  delete-old-versions:
     runs-on: ubuntu-latest
     permissions:
       packages: write
 
     steps:
-      - name: Delete untagged images for rep2
-        uses: actions/delete-package-versions@v5
-        with:
-          package-name: 'rep2'
-          package-type: 'container'
-          delete-only-untagged-versions: 'true'
-
-      - name: Keep only 3 latest tagged images for rep2
+      - name: Cleanup rep2 images
         uses: actions/delete-package-versions@v5
         with:
           package-name: 'rep2'
@@ -27,14 +20,7 @@ jobs:
           delete-only-untagged-versions: 'false'
           min-versions-to-keep: 3
 
-      - name: Delete untagged images for rep2-extra
-        uses: actions/delete-package-versions@v5
-        with:
-          package-name: 'rep2-extra'
-          package-type: 'container'
-          delete-only-untagged-versions: 'true'
-
-      - name: Keep only 3 latest tagged images for rep2-extra
+      - name: Cleanup rep2-extra images
         uses: actions/delete-package-versions@v5
         with:
           package-name: 'rep2-extra'
@@ -42,14 +28,7 @@ jobs:
           delete-only-untagged-versions: 'false'
           min-versions-to-keep: 3
 
-      - name: Delete untagged images for rep2-base
-        uses: actions/delete-package-versions@v5
-        with:
-          package-name: 'rep2-base'
-          package-type: 'container'
-          delete-only-untagged-versions: 'true'
-
-      - name: Keep only 3 latest tagged images for rep2-base
+      - name: Cleanup rep2-base images
         uses: actions/delete-package-versions@v5
         with:
           package-name: 'rep2-base'
@@ -57,14 +36,7 @@ jobs:
           delete-only-untagged-versions: 'false'
           min-versions-to-keep: 3
 
-      - name: Delete untagged images for rep2-base-extra
-        uses: actions/delete-package-versions@v5
-        with:
-          package-name: 'rep2-base-extra'
-          package-type: 'container'
-          delete-only-untagged-versions: 'true'
-
-      - name: Keep only 3 latest tagged images for rep2-base-extra
+      - name: Cleanup rep2-base-extra images
         uses: actions/delete-package-versions@v5
         with:
           package-name: 'rep2-base-extra'
