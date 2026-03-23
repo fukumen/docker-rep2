@@ -5,6 +5,7 @@ export XDG_DATA_HOME="/ext/caddy_data"
 
 mkdir -p /ext/conf /ext/data /ext/rep2/ic "$XDG_CONFIG_HOME" "$XDG_DATA_HOME"
 cp -Rn /var/www/conf.orig/* /ext/conf/
+cp -f /var/www/conf.orig/conf_user_def* /ext/conf/
 cp -Rn /var/www/data.orig/* /ext/data/
 
 chown -R www-data:www-data /ext
