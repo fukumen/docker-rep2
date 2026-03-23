@@ -52,8 +52,7 @@ rep2を以下の設定で使う想定です。
 
 ```
 proxy_use: しない
-2ch_ssl.subject: する
-2ch_ssl.post: する
+use_https: する
 2ch_to_5ch: する
 http_post_method: HTTP_Request2コンパチ
 ```
@@ -68,8 +67,7 @@ rep2を以下の設定で使う想定です。
 proxy_use: する
 proxy_host: 127.0.0.1
 proxy_port: 8080
-2ch_ssl.subject: しない
-2ch_ssl.post: しない
+use_https: しない
 2ch_to_5ch: する
 http_post_method: HTTP_Request2コンパチ
 ```
