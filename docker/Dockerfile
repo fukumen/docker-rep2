@@ -19,7 +19,7 @@ RUN /tmp/composer.phar install
 RUN rm -rf `find . -name '.git*' -o -name 'composer.*'`
 
 COPY patch /tmp
-RUN patch --no-backup-if-mismatch -p1 < /tmp/p2-php.patch
+RUN php /tmp/apply_settings.php /tmp/settings.txt .
 
 RUN mv conf conf.orig && ln -s /ext/conf conf
 RUN mv data data.orig && ln -s /ext/data data

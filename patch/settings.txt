@@ -1,0 +1,18 @@
+[conf/conf.inc.php]
+- define('P2_CONFIG_DIR', __DIR__);
++ define('P2_CONFIG_DIR', '/var/www/conf');
+
+[conf/conf_user_def.inc.php]
+- $conf_user_def['proxy_host'] = ""; // ("")
++ $conf_user_def['proxy_host'] = "127.0.0.1"; // ("")
+
+- $conf_user_def['proxy_port'] = ""; // ("")
++ $conf_user_def['proxy_port'] = "8080"; // ("")
+
+[conf/conf_admin_ex.inc.php]
+- $_conf['expack.ic2.enabled'] = 0; // (0)
++ $_conf['expack.ic2.enabled'] = 3; // (0)
+
+[conf/conf_ic2.inc.php]
+- $_conf['expack.ic2.general.dsn'] = "";
++ $_conf['expack.ic2.general.dsn'] = 'sqlite:' . $_conf['db_dir'] . '/imgcache.sqlite';
