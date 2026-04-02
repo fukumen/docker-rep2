@@ -62,7 +62,11 @@ def get_base_image_name(args):
 
 def run_cmd(cmd, env=None, shell=False):
     print(f"==> Executing: {' '.join(cmd) if isinstance(cmd, list) else cmd}")
-    res = subprocess.run(cmd, env=env, shell=shell)
+    try:
+        res = subprocess.run(cmd, env=env, shell=shell)
+    except KeyboardInterrupt:
+        print("\nInterrupted")
+        sys.exit(130)
     if res.returncode != 0:
         print(f"\nError: Command failed with exit code {res.returncode}")
         sys.exit(res.returncode)
