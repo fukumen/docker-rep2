@@ -63,13 +63,16 @@ def get_base_image_name(args):
 def run_cmd(cmd, env=None, shell=False):
     print(f"==> Executing: {' '.join(cmd) if isinstance(cmd, list) else cmd}")
     try:
-        res = subprocess.run(cmd, env=env, shell=shell)
+        process = subprocess.Popen(cmd, env=env, shell=shell)
+        res = process.wait()
     except KeyboardInterrupt:
         print("\nInterrupted")
+        process.terminate()
+        process.wait()
         sys.exit(130)
-    if res.returncode != 0:
-        print(f"\nError: Command failed with exit code {res.returncode}")
-        sys.exit(res.returncode)
+    if res != 0:
+        print(f"\nError: Command failed with exit code {res}")
+        sys.exit(res)
 
 def get_compose_args(args):
     cmd = ["docker", "compose", "-f", "docker-compose.yml"]
