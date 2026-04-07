@@ -24,6 +24,7 @@ RUN php /tmp/apply_settings.php /tmp/settings.txt .
 RUN mv conf conf.orig && ln -s /ext/conf conf
 RUN mv data data.orig && ln -s /ext/data data
 RUN ln -s /ext/rep2/ic rep2/ic
+RUN ln -s /ext/user_skin rep2/user_skin
 
 COPY --from=2chproxy.pl 2chproxy.pl .
 RUN chmod 755 2chproxy.pl
