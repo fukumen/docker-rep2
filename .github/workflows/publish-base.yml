@@ -42,6 +42,8 @@ jobs:
           file: docker/Dockerfile.base
           platforms: linux/amd64,linux/arm64
           push: true
+          provenance: false
+          outputs: type=registry,oci-mediatypes=true
           tags: |
             ghcr.io/${{ github.repository_owner }}/rep2-base:latest
             ghcr.io/${{ github.repository_owner }}/rep2-base:${{ steps.date.outputs.today }}
@@ -54,6 +56,8 @@ jobs:
           file: docker/Dockerfile.base
           platforms: linux/amd64,linux/arm64
           push: true
+          provenance: false
+          outputs: type=registry,oci-mediatypes=true
           build-args: |
             FLAG_EXTRA=true
           tags: |
