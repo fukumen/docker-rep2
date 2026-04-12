@@ -4,6 +4,7 @@ import argparse
 import subprocess
 import os
 import sys
+import base64
 
 try:
     import argcomplete
@@ -39,6 +40,29 @@ REMOTE_COMMAND = {
     "upload": False,
     "deploy": False,
 }
+
+def get_git_info(path="."):
+    if not os.path.isdir(path):
+        return "unknown", ""
+    try:
+        # Get hash
+        repo_hash = subprocess.check_output(
+            ["git", "rev-parse", "--short", "HEAD"],
+            cwd=path, stderr=subprocess.DEVNULL, text=True
+        ).strip()
+
+        # Get log
+        env = os.environ.copy()
+        env["TZ"] = "Asia/Tokyo"
+        repo_raw_log = subprocess.check_output(
+            ["git", "log", "-1", "--format=%cd %s", "--date=format-local:%Y-%m-%d %H:%M"],
+            cwd=path, env=env, stderr=subprocess.DEVNULL, text=True
+        ).strip().split('\n')[0]
+
+        repo_log = base64.b64encode(repo_raw_log.encode('utf-8')).decode('utf-8')
+        return repo_hash, repo_log
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return "unknown", ""
 
 def get_image_name(args):
     if args.local:
@@ -110,12 +134,20 @@ def execute_command(cmd_name, args, extra_args=None):
         flag_debug = "true" if args.debug else "false"
         context_p2 = LOCAL_P2_CONTEXT if args.local else DEFAULT_P2_CONTEXT
         context_proxy = LOCAL_PROXY_CONTEXT if args.local else DEFAULT_PROXY_CONTEXT
+
+        repo_hash, repo_log = get_git_info(".")
+        rep2_hash, rep2_log = get_git_info(context_p2)
+
         build_cmd = [
             "docker", "build",
             "-t", image_name,
             "--build-arg", f"FLAG_EXTRA={flag_extra}",
             "--build-arg", f"FLAG_LOCAL={flag_local}",
             "--build-arg", f"FLAG_DEBUG={flag_debug}",
+            "--build-arg", f"REPO_HASH={repo_hash}",
+            "--build-arg", f"REPO_LOG={repo_log}",
+            "--build-arg", f"REP2_HASH={rep2_hash}",
+            "--build-arg", f"REP2_LOG={rep2_log}",
             "--build-context", f"p2-rep2={context_p2}",
             "--build-context", f"2chproxy.pl={context_proxy}",
             "-f", "docker/Dockerfile",
