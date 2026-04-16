@@ -82,6 +82,8 @@ def get_base_image_name(args):
         base_image_name = f"{DEFAULT_IMAGE_BASE}-base"
     if args.extra:
         base_image_name += "-extra"
+    if args.local and args.debug:
+        base_image_name += "-dbg"
     return base_image_name + ":latest"
 
 def run_cmd(cmd, env=None, shell=False):
@@ -167,10 +169,12 @@ def execute_command(cmd_name, args, extra_args=None):
         
         base_image_name = get_base_image_name(args)
         flag_extra = "true" if args.extra else "false"
+        flag_debug = "true" if args.debug else "false"
         build_cmd = [
             "docker", "build",
             "-t", base_image_name,
             "--build-arg", f"FLAG_EXTRA={flag_extra}",
+            "--build-arg", f"FLAG_DEBUG={flag_debug}",
             "-f", "docker/Dockerfile.base",
             "."
         ]

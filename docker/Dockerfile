@@ -3,14 +3,16 @@ ARG FLAG_EXTRA="false"
 ARG FLAG_LOCAL="false"
 ARG FLAG_DEBUG="false"
 
-FROM ghcr.io/fukumen/rep2-base:latest AS rep2-false-false
-FROM ghcr.io/fukumen/rep2-base-extra:latest AS rep2-true-false
-FROM rep2-base:latest AS rep2-false-true
-FROM rep2-base-extra:latest AS rep2-true-true
+FROM ghcr.io/fukumen/rep2-base:latest AS rep2-false-false-false
+FROM ghcr.io/fukumen/rep2-base-extra:latest AS rep2-true-false-false
+FROM rep2-base:latest AS rep2-false-true-false
+FROM rep2-base-dbg:latest AS rep2-false-true-true
+FROM rep2-base-extra:latest AS rep2-true-true-false
+FROM rep2-base-extra-dbg:latest AS rep2-true-true-true
 
 FROM caddy:${CADDY_VERSION}-alpine AS caddy-upstream
 
-FROM rep2-${FLAG_EXTRA}-${FLAG_LOCAL} AS builder
+FROM rep2-${FLAG_EXTRA}-${FLAG_LOCAL}-${FLAG_DEBUG} AS builder
 
 COPY --from=p2-rep2 . /var/www
 WORKDIR /var/www
@@ -30,7 +32,7 @@ COPY --from=2chproxy.pl 2chproxy.pl .
 RUN chmod 755 2chproxy.pl
 RUN mv 2chproxy.pl /usr/local/bin/
 
-FROM rep2-${FLAG_EXTRA}-${FLAG_LOCAL}
+FROM rep2-${FLAG_EXTRA}-${FLAG_LOCAL}-${FLAG_DEBUG}
 # Based on the original work by Abe Masahiro <pen@thcomp.org>
 LABEL org.opencontainers.image.authors="Fukumen <fukumen@gmail.com>" \
     org.opencontainers.image.source="https://github.com/fukumen/docker-rep2"
@@ -51,13 +53,7 @@ ENV VER_RUN_NUMBER=$RUN_NUMBER
 
 COPY --from=caddy-upstream /usr/bin/caddy /usr/bin/caddy
 
-RUN if [ "$FLAG_DEBUG" = "true" ]; then \
-    apk --no-cache add tshark; \
-    apk --no-cache add  --virtual .build-deps $PHPIZE_DEPS linux-headers \
-    && pecl install xdebug \
-    && docker-php-ext-enable xdebug \
-    && apk del .build-deps; \
-    fi
+
 
 RUN apk del git patch \
     && rm -f /tmp/composer.phar \
