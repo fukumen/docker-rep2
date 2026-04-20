@@ -13,33 +13,37 @@ jobs:
 
     steps:
       - name: Cleanup rep2 images
-        uses: actions/delete-package-versions@v5
+        uses: dataaxiom/ghcr-cleanup-action@v1
         with:
-          package-name: 'rep2'
-          package-type: 'container'
-          delete-only-untagged-versions: 'false'
-          min-versions-to-keep: 3
+          token: ${{ secrets.GITHUB_TOKEN }}
+          package: 'rep2'
+          delete-untagged: true
+          keep-n-tagged: 3
+          exclude-tags: 'latest'
 
       - name: Cleanup rep2-extra images
-        uses: actions/delete-package-versions@v5
+        uses: dataaxiom/ghcr-cleanup-action@v1
         with:
-          package-name: 'rep2-extra'
-          package-type: 'container'
-          delete-only-untagged-versions: 'false'
-          min-versions-to-keep: 3
+          token: ${{ secrets.GITHUB_TOKEN }}
+          package: 'rep2-extra'
+          delete-untagged: true
+          keep-n-tagged: 3
+          exclude-tags: 'latest'
 
       - name: Cleanup rep2-base images
-        uses: actions/delete-package-versions@v5
+        uses: dataaxiom/ghcr-cleanup-action@v1
         with:
-          package-name: 'rep2-base'
-          package-type: 'container'
-          delete-only-untagged-versions: 'false'
-          min-versions-to-keep: 3
+          token: ${{ secrets.GITHUB_TOKEN }}
+          package: 'rep2-base'
+          delete-untagged: true
+          keep-n-tagged: 3
+          exclude-tags: 'latest'
 
       - name: Cleanup rep2-base-extra images
-        uses: actions/delete-package-versions@v5
+        uses: dataaxiom/ghcr-cleanup-action@v1
         with:
-          package-name: 'rep2-base-extra'
-          package-type: 'container'
-          delete-only-untagged-versions: 'false'
-          min-versions-to-keep: 3
+          token: ${{ secrets.GITHUB_TOKEN }}
+          package: 'rep2-base-extra'
+          delete-untagged: true
+          keep-n-tagged: 3
+          exclude-tags: 'latest'
