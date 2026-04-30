@@ -45,8 +45,6 @@ su-exec www-data php /var/www/scripts/ic2.php setup | iconv -f SHIFT_JIS -t UTF-
 
 crond
 
-php-fpm -D
-
 if [ ! -f /etc/Caddyfile ]; then
 cat <<EOF > /etc/Caddyfile
 :8443 {
@@ -76,9 +74,6 @@ EOF
 fi
 
 CADDY_USER=${CADDY_USER:-www-data}
-su-exec "$CADDY_USER" caddy start --config /etc/Caddyfile
+sed -i "s/%%CADDY_USER%%/${CADDY_USER}/g" /etc/supervisord.conf
 
-while true; do
-    rm -f /tmp/2chproxy.pid
-    su-exec nobody /usr/local/bin/2chproxy.pl -v -c /etc/2chproxy.conf
-done
+exec /usr/bin/supervisord -c /etc/supervisord.conf
