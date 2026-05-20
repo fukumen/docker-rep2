@@ -65,10 +65,10 @@ def get_git_info(path="."):
         return "unknown", ""
 
 def get_image_name(args):
-    if args.local:
-        image_name = LOCAL_IMAGE_BASE
-    else:
+    if args.ghcr:
         image_name = DEFAULT_IMAGE_BASE
+    else:
+        image_name = LOCAL_IMAGE_BASE
     if args.extra:
         image_name += "-extra"
     if args.debug:
@@ -76,13 +76,13 @@ def get_image_name(args):
     return image_name + ":latest"
 
 def get_base_image_name(args):
-    if args.local:
-        base_image_name = f"{LOCAL_IMAGE_BASE}-base"
-    else:
+    if args.ghcr:
         base_image_name = f"{DEFAULT_IMAGE_BASE}-base"
+    else:
+        base_image_name = f"{LOCAL_IMAGE_BASE}-base"
     if args.extra:
         base_image_name += "-extra"
-    if args.local and args.debug:
+    if not args.ghcr and args.debug:
         base_image_name += "-dbg"
     return base_image_name + ":latest"
 
@@ -122,7 +122,7 @@ def execute_command(cmd_name, args, extra_args=None):
         if is_remote:
             flags = []
             if args.extra: flags.append("--extra")
-            if args.local: flags.append("--local")
+            if args.ghcr: flags.append("--ghcr")
             if args.debug: flags.append("--debug")
             argv0 = os.path.basename(sys.argv[0])
             remote_cmd = f"cd {REMOTE_PATH} && ./{argv0} --noremote up {' '.join(flags)}"
@@ -132,10 +132,10 @@ def execute_command(cmd_name, args, extra_args=None):
             
     elif cmd_name == "build":
         flag_extra = "true" if args.extra else "false"
-        flag_local = "true" if args.local else "false"
+        flag_local = "false" if args.ghcr else "true"
         flag_debug = "true" if args.debug else "false"
-        context_p2 = LOCAL_P2_CONTEXT if args.local else DEFAULT_P2_CONTEXT
-        context_proxy = LOCAL_PROXY_CONTEXT if args.local else DEFAULT_PROXY_CONTEXT
+        context_p2 = DEFAULT_P2_CONTEXT if args.ghcr else LOCAL_P2_CONTEXT
+        context_proxy = DEFAULT_PROXY_CONTEXT if args.ghcr else LOCAL_PROXY_CONTEXT
 
         repo_hash, repo_log = get_git_info(".")
         rep2_hash, rep2_log = get_git_info(context_p2)
@@ -159,14 +159,6 @@ def execute_command(cmd_name, args, extra_args=None):
         run_cmd(["docker", "image", "prune", "-f"], env=env)
 
     elif cmd_name == "build-base":
-        if args.local:
-            base_image_name = f"{LOCAL_IMAGE_BASE}-base"
-        else:
-            base_image_name = f"{DEFAULT_IMAGE_BASE}-base"
-        if args.extra:
-            base_image_name += "-extra"
-        base_image_name += ":latest"
-        
         base_image_name = get_base_image_name(args)
         flag_extra = "true" if args.extra else "false"
         flag_debug = "true" if args.debug else "false"
@@ -275,8 +267,8 @@ def main():
 
     parser.add_argument('command', choices=sorted(REMOTE_COMMAND.keys()), help="実行するコマンド")
     parser.add_argument('--extra', action='store_true', help="全部入りイメージにする")
-    parser.add_argument('--local', action='store_true', default=True, help=f"ローカルのソースコードを使用する ({LOCAL_P2_CONTEXT}, {LOCAL_PROXY_CONTEXT}) / ローカルのイメージ名を使用する (default)")
-    parser.add_argument('--nolocal', dest='local', action='store_false', help="githubのソースコードを使用する / githubと同じイメージ名を使用する")
+    parser.add_argument('--ghcr', action='store_true', help=f"githubのソースコードを使用し、公式イメージ名 ({DEFAULT_IMAGE_BASE}) を使用する")
+    parser.add_argument('--noghcr', dest='ghcr', action='store_false', help=f"ローカルのソースコードを使用し、ローカルイメージ名 ({LOCAL_IMAGE_BASE}) を使用する (default)")
     parser.add_argument('--debug', action='store_true', default=True, help="デバッグを有効にする (default)")
     parser.add_argument('--nodebug', dest='debug', action='store_false', help="デバッグを無効にする")
     parser.add_argument('--remote', action='store_true', default=None, help=f"リモートホストで実行する (SSH経由 / DOCKER_HOST=ssh://{REMOTE_HOST_NAME})")
