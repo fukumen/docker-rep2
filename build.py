@@ -39,6 +39,7 @@ REMOTE_COMMAND = {
     "sync": False,
     "upload": False,
     "deploy": False,
+    "test": False,
 }
 
 def get_git_info(path="."):
@@ -128,7 +129,7 @@ def execute_command(cmd_name, args, extra_args=None):
             if args.debug: flags.append("--debug")
             flags.append("--use-remote-yml")
             argv0 = os.path.basename(sys.argv[0])
-            remote_cmd = f"cd {REMOTE_PATH} && ./{argv0} --noremote up {' '.join(flags)}"
+            remote_cmd = f"cd {REMOTE_PATH} && ./{argv0} --noremote {' '.join(flags)} up"
             run_cmd(["ssh", "-t", REMOTE_HOST_NAME, remote_cmd])
         else:
             run_cmd(compose_base + ["up", "-d"], env=env)
@@ -234,6 +235,20 @@ def execute_command(cmd_name, args, extra_args=None):
 
         print("\n==> Deploy completed successfully!")
 
+    elif cmd_name == "test":
+        test_file = os.path.abspath(args.test_file)
+        if not os.path.exists(test_file):
+            print(f"Error: file not found: {test_file}")
+            sys.exit(1)
+
+        test_args = extra_args
+        run_cmd(compose_base + [
+            "run", "--rm",
+            "-v", f"{test_file}:/tmp/test.php",
+            SERVICE_NAME,
+            "php", "/tmp/test.php"
+        ] + test_args, env=env)
+
     else:
         print(f"Unknown command: {cmd_name}")
         sys.exit(1)
@@ -255,6 +270,7 @@ def main():
         "sync": "rsync でローカルディレクトリをリモートホストへ同期",
         "upload": "ビルドしたイメージをリモートホストへ転送",
         "deploy": "down -> build -> upload -> up のデプロイシーケンスを一括実行",
+        "test": "指定した PHP テストファイルをコンテナ内でワンショット実行",
     }
 
     command_help = "コマンド一覧:\n"
@@ -262,21 +278,37 @@ def main():
         remote_status = "--remote" if REMOTE_COMMAND.get(cmd, False) else "--noremote"
         command_help += f"  {cmd:<10} : {desc} (default: {remote_status})\n"
 
+    # 共通オプションを定義する親パーサー (ヘルプ重複衝突を避けるため add_help=False)
+    parent_parser = argparse.ArgumentParser(add_help=False)
+    parent_parser.add_argument('--extra', action='store_true', help="全部入りイメージにする")
+    parent_parser.add_argument('--ghcr', action='store_true', help=f"githubのソースコードを使用し、公式イメージ名 ({DEFAULT_IMAGE_BASE}) を使用する")
+    parent_parser.add_argument('--noghcr', dest='ghcr', action='store_false', help=f"ローカルのソースコードを使用し、ローカルイメージ名 ({LOCAL_IMAGE_BASE}) を使用する (default)")
+    parent_parser.add_argument('--debug', action='store_true', default=True, help="デバッグを有効にする (default)")
+    parent_parser.add_argument('--nodebug', dest='debug', action='store_false', help="デバッグを無効にする")
+    parent_parser.add_argument('--remote', action='store_true', default=None, help=f"リモートホストで実行する (SSH経由 / DOCKER_HOST=ssh://{REMOTE_HOST_NAME})")
+    parent_parser.add_argument('--noremote', dest='remote', action='store_false', help="ローカルホストで実行する")
+    parent_parser.add_argument('--use-remote-yml', action='store_true', help=argparse.SUPPRESS)
+
+    # メインパーサー
     parser = argparse.ArgumentParser(
         description="docker-rep2 build script",
         epilog=command_help,
-        formatter_class=argparse.RawTextHelpFormatter
+        formatter_class=argparse.RawTextHelpFormatter,
+        parents=[parent_parser]
     )
 
-    parser.add_argument('command', choices=sorted(REMOTE_COMMAND.keys()), help="実行するコマンド")
-    parser.add_argument('--extra', action='store_true', help="全部入りイメージにする")
-    parser.add_argument('--ghcr', action='store_true', help=f"githubのソースコードを使用し、公式イメージ名 ({DEFAULT_IMAGE_BASE}) を使用する")
-    parser.add_argument('--noghcr', dest='ghcr', action='store_false', help=f"ローカルのソースコードを使用し、ローカルイメージ名 ({LOCAL_IMAGE_BASE}) を使用する (default)")
-    parser.add_argument('--debug', action='store_true', default=True, help="デバッグを有効にする (default)")
-    parser.add_argument('--nodebug', dest='debug', action='store_false', help="デバッグを無効にする")
-    parser.add_argument('--remote', action='store_true', default=None, help=f"リモートホストで実行する (SSH経由 / DOCKER_HOST=ssh://{REMOTE_HOST_NAME})")
-    parser.add_argument('--noremote', dest='remote', action='store_false', help="ローカルホストで実行する")
-    parser.add_argument('--use-remote-yml', action='store_true', help=argparse.SUPPRESS)
+    subparsers = parser.add_subparsers(dest='command', help="実行するコマンド", required=True)
+
+    # 各コマンドをサブコマンドとして登録
+    for cmd, desc in command_descriptions.items():
+        if cmd == 'test':
+            test_parser = subparsers.add_parser(cmd, help=desc)
+            test_file_arg = test_parser.add_argument('test_file', help="テストファイルへのパス")
+            if argcomplete:
+                from argcomplete.completers import FilesCompleter
+                test_file_arg.completer = FilesCompleter()
+        else:
+            subparsers.add_parser(cmd, help=desc)
 
     if argcomplete:
         argcomplete.autocomplete(parser)
