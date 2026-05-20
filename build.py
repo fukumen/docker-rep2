@@ -100,10 +100,12 @@ def run_cmd(cmd, env=None, shell=False):
         print(f"\nError: Command failed with exit code {res}")
         sys.exit(res)
 
-def get_compose_args(args):
+def get_compose_args(args, is_remote):
     cmd = ["docker", "compose", "-f", "docker-compose.yml"]
     if args.debug:
         cmd.extend(["-f", "docker-compose.debug.yml"])
+    if (is_remote or args.use_remote_yml) and os.path.exists("docker-compose.remote.yml"):
+        cmd.extend(["-f", "docker-compose.remote.yml"])
     if os.path.exists("docker-compose.override.yml"):
         cmd.extend(["-f", "docker-compose.override.yml"])
     return cmd
@@ -116,7 +118,7 @@ def execute_command(cmd_name, args, extra_args=None):
     if is_remote:
         env["DOCKER_HOST"] = f"ssh://{REMOTE_HOST_NAME}"
 
-    compose_base = get_compose_args(args)
+    compose_base = get_compose_args(args, is_remote)
 
     if cmd_name == "up":
         if is_remote:
@@ -124,6 +126,7 @@ def execute_command(cmd_name, args, extra_args=None):
             if args.extra: flags.append("--extra")
             if args.ghcr: flags.append("--ghcr")
             if args.debug: flags.append("--debug")
+            flags.append("--use-remote-yml")
             argv0 = os.path.basename(sys.argv[0])
             remote_cmd = f"cd {REMOTE_PATH} && ./{argv0} --noremote up {' '.join(flags)}"
             run_cmd(["ssh", "-t", REMOTE_HOST_NAME, remote_cmd])
@@ -273,6 +276,7 @@ def main():
     parser.add_argument('--nodebug', dest='debug', action='store_false', help="デバッグを無効にする")
     parser.add_argument('--remote', action='store_true', default=None, help=f"リモートホストで実行する (SSH経由 / DOCKER_HOST=ssh://{REMOTE_HOST_NAME})")
     parser.add_argument('--noremote', dest='remote', action='store_false', help="ローカルホストで実行する")
+    parser.add_argument('--use-remote-yml', action='store_true', help=argparse.SUPPRESS)
 
     if argcomplete:
         argcomplete.autocomplete(parser)
