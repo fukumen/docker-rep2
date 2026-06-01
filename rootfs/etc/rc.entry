@@ -10,7 +10,7 @@ cp -Rn /var/www/data.orig/* /ext/data/
 
 chown -R www-data:www-data /ext
 
-php << 'EOF'
+su-exec www-data php << 'EOF'
 <?php
 $orig_file = '/var/www/conf.orig/conf.inc.php';
 $target_file = '/ext/conf/conf.inc.php';
