@@ -18,6 +18,7 @@ DEFAULT_P2_CONTEXT = "https://github.com/fukumen/p2-php.git#php8-merge-mbstring"
 DEFAULT_PROXY_CONTEXT = "https://github.com/fukumen/2chproxy.pl.git#always-https-for-2ch-config"
 LOCAL_P2_CONTEXT = "../p2-php"
 LOCAL_PROXY_CONTEXT = "../2chproxy.pl"
+LOCAL_TEST_CONTEXT = "../test"
 
 SERVICE_NAME = "rep2php8"
 REMOTE_HOST_NAME = "rep2"
@@ -241,12 +242,20 @@ def execute_command(cmd_name, args, extra_args=None):
             print(f"Error: file not found: {test_file}")
             sys.exit(1)
 
+        test_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), LOCAL_TEST_CONTEXT))
+        if not (test_file.startswith(test_dir + os.sep) or test_file == test_dir):
+            print(f"Error: Test file must be located under the test directory: {test_dir}")
+            sys.exit(1)
+
+        rel_path = os.path.relpath(test_file, test_dir)
+        mount_opts = ["-v", f"{test_dir}:/var/www/test"]
+        container_php_file = f"/var/www/test/{rel_path}"
         test_args = extra_args
         run_cmd(compose_base + [
             "run", "--rm",
-            "-v", f"{test_file}:/tmp/test.php",
+        ] + mount_opts + [
             SERVICE_NAME,
-            "php", "/tmp/test.php"
+            "php", container_php_file
         ] + test_args, env=env)
 
     else:
