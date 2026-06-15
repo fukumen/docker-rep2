@@ -15,6 +15,7 @@ RUN apk --no-cache add \
             gettext-dev \
             jpeg-dev \
             libpng-dev \
+            libwebp-dev \
             zlib-dev \
             icu-dev \
             libzip-dev \
@@ -25,10 +26,10 @@ RUN if [ "$FLAG_EXTRA" = "true" ]; then \
         apk add --no-cache $PHPIZE_DEPS imagemagick-dev libtool postgresql-dev && \
         pecl install imagick && \
         docker-php-ext-enable imagick && \
-        docker-php-ext-configure gd --with-jpeg --with-freetype && \
+        docker-php-ext-configure gd --with-jpeg --with-freetype --with-webp && \
         docker-php-ext-install -j$(nproc) gd pdo_mysql pdo_pgsql exif zip bcmath xml simplexml; \
     else \
-        docker-php-ext-configure gd --with-jpeg && \
+        docker-php-ext-configure gd --with-jpeg --with-webp && \
         docker-php-ext-install -j$(nproc) gd bcmath; \
     fi
 
@@ -60,6 +61,7 @@ RUN apk --no-cache add \
             libintl \
             libjpeg \
             libpng \
+            libwebp \
             perl-http-daemon \
             perl-lwp-useragent-determined \
             perl-yaml-tiny \
