@@ -169,6 +169,7 @@ def execute_command(cmd_name, args, extra_args=None):
         flag_debug = "true" if args.debug else "false"
         build_cmd = [
             "docker", "build",
+            "--pull",
             "-t", base_image_name,
             "--build-arg", f"FLAG_EXTRA={flag_extra}",
             "--build-arg", f"FLAG_DEBUG={flag_debug}",
