@@ -1,11 +1,11 @@
 <?php
 /*
- * デバッグヘルパー
- * ウォッチ式やデバッグコンソールで使用する想定
+ * Debug helper
+ * Intended for use in watch expressions and the debug console
  */
 
 if (!function_exists('sd')) {
-    // CP932をUTF-8に変換
+    // Convert CP932 to UTF-8
     function sd($var) {
         $str = print_r($var, true);
         return mb_convert_encoding($str, 'UTF-8', 'CP932');
