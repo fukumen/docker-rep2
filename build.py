@@ -16,11 +16,8 @@ LOCAL_IMAGE_BASE = "rep2"
 
 DEFAULT_P2_CONTEXT = "https://github.com/fukumen/p2-php.git#php8-merge-mbstring"
 LOCAL_P2_CONTEXT = "../p2-php"
-LOCAL_TEST_CONTEXT = "../test"
 
 SERVICE_NAME = "rep2php8"
-REMOTE_HOST_NAME = "rep2"
-REMOTE_PATH = "docker-rep2"
 
 REMOTE_COMMAND = {
     "up": True,
@@ -40,6 +37,56 @@ REMOTE_COMMAND = {
     "deploy": False,
     "test": False,
 }
+
+def load_env(path=".env"):
+    """.env を読み込み、未設定の環境変数へ反映する（既存の環境変数が優先される）"""
+    try:
+        with open(path, encoding="utf-8") as f:
+            lines = f.read().splitlines()
+    except OSError:
+        return
+    for line in lines:
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
+
+
+def env_bool(name, default=False):
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return value.strip().lower() in ("1", "true", "yes", "on")
+
+
+def resolve_debug(debug_flag):
+    if debug_flag is not None:
+        return debug_flag
+    return env_bool("REP2_BUILD_DEBUG", False)
+
+
+def get_remote_config():
+    host = os.environ.get("REP2_REMOTE_HOST", "").strip()
+    path = os.environ.get("REP2_REMOTE_PATH", "").strip()
+    return host, path
+
+
+def require_remote_config():
+    host, path = get_remote_config()
+    if not host or not path:
+        print("Error: リモート実行には REP2_REMOTE_HOST と REP2_REMOTE_PATH の両方の設定が必要です (.env に記述できます)。")
+        sys.exit(1)
+    return host, path
+
+
+def require_test_context():
+    ctx = os.environ.get("REP2_TEST_CONTEXT", "").strip()
+    if not ctx:
+        print("Error: test コマンドの実行には REP2_TEST_CONTEXT の設定が必要です (.env に記述できます)。")
+        sys.exit(1)
+    return ctx
+
 
 def get_git_info(path="."):
     if not os.path.isdir(path):
@@ -112,11 +159,14 @@ def get_compose_args(args, is_remote):
 
 def execute_command(cmd_name, args, extra_args=None):
     is_remote = args.remote if args.remote is not None else REMOTE_COMMAND.get(cmd_name, False)
+    remote_host = remote_path = None
+    if is_remote:
+        remote_host, remote_path = require_remote_config()
     image_name = get_image_name(args)
     env = os.environ.copy()
     env["REP2_IMAGE"] = image_name
     if is_remote:
-        env["DOCKER_HOST"] = f"ssh://{REMOTE_HOST_NAME}"
+        env["DOCKER_HOST"] = f"ssh://{remote_host}"
 
     compose_base = get_compose_args(args, is_remote)
 
@@ -128,8 +178,8 @@ def execute_command(cmd_name, args, extra_args=None):
             if args.debug: flags.append("--debug")
             flags.append("--use-remote-yml")
             argv0 = os.path.basename(sys.argv[0])
-            remote_cmd = f"cd {REMOTE_PATH} && ./{argv0} --noremote {' '.join(flags)} up"
-            run_cmd(["ssh", "-t", REMOTE_HOST_NAME, remote_cmd])
+            remote_cmd = f"cd {remote_path} && ./{argv0} --noremote {' '.join(flags)} up"
+            run_cmd(["ssh", "-t", remote_host, remote_cmd])
         else:
             run_cmd(compose_base + ["up", "-d"], env=env)
             
@@ -209,23 +259,27 @@ def execute_command(cmd_name, args, extra_args=None):
         run_cmd(["docker", "builder", "prune", "-a"], env=env)
             
     elif cmd_name == "sync":
-        run_cmd(["rsync", "-av", "-i", "--exclude", ".git", "--exclude", "rep2-data", "./", f"{REMOTE_HOST_NAME}:{REMOTE_PATH}/"])
+        remote_host, remote_path = require_remote_config()
+        run_cmd(["rsync", "-av", "-i", "--exclude", ".git", "--exclude", "rep2-data", "--exclude", "__pycache__", "./", f"{remote_host}:{remote_path}/"])
 
     elif cmd_name == "upload":
-        print(f"==> Uploading image {image_name} to {REMOTE_HOST_NAME}...")
-        sh_cmd = f"docker save {image_name} | ssh {REMOTE_HOST_NAME} 'docker load'"
+        remote_host, _ = require_remote_config()
+        print(f"==> Uploading image {image_name} to {remote_host}...")
+        sh_cmd = f"docker save {image_name} | ssh {remote_host} 'docker load'"
         run_cmd(sh_cmd, shell=True)
 
     elif cmd_name == "deploy":
         print("==> Starting deploy sequence...")
 
-        deploy_steps = [
-            "down",
-            "build",
-            "upload",
-            "up",
-            "prune"
-        ]
+        # フラグ未指定ならリモート設定の有無でデプロイ先を自動判定
+        if args.remote is None:
+            args.remote = all(get_remote_config())
+
+        deploy_steps = (
+            ["down", "build", "upload", "up", "prune"]
+            if args.remote
+            else ["down", "build", "up", "prune"]
+        )
 
         for i, cmd in enumerate(deploy_steps, 1):
             print(f"\n--- [{i}/{len(deploy_steps)}] {cmd} ---")
@@ -234,12 +288,13 @@ def execute_command(cmd_name, args, extra_args=None):
         print("\n==> Deploy completed successfully!")
 
     elif cmd_name == "test":
+        test_context = require_test_context()
         test_file = os.path.abspath(args.test_file)
         if not os.path.exists(test_file):
             print(f"Error: file not found: {test_file}")
             sys.exit(1)
 
-        test_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), LOCAL_TEST_CONTEXT))
+        test_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), test_context))
         if not (test_file.startswith(test_dir + os.sep) or test_file == test_dir):
             print(f"Error: Test file must be located under the test directory: {test_dir}")
             sys.exit(1)
@@ -260,6 +315,8 @@ def execute_command(cmd_name, args, extra_args=None):
         sys.exit(1)
 
 def main():
+    load_env()
+
     command_descriptions = {
         "up": "docker compose up を実行",
         "build": "docker build を実行してイメージを作成",
@@ -289,9 +346,9 @@ def main():
     parent_parser.add_argument('--extra', action='store_true', help="全部入りイメージにする")
     parent_parser.add_argument('--ghcr', action='store_true', help=f"githubのソースコードを使用し、公式イメージ名 ({DEFAULT_IMAGE_BASE}) を使用する")
     parent_parser.add_argument('--noghcr', dest='ghcr', action='store_false', help=f"ローカルのソースコードを使用し、ローカルイメージ名 ({LOCAL_IMAGE_BASE}) を使用する (default)")
-    parent_parser.add_argument('--debug', action='store_true', default=True, help="デバッグを有効にする (default)")
+    parent_parser.add_argument('--debug', dest='debug', action='store_true', default=None, help="デバッグを有効にする (default: .env の REP2_BUILD_DEBUG、未設定なら無効)")
     parent_parser.add_argument('--nodebug', dest='debug', action='store_false', help="デバッグを無効にする")
-    parent_parser.add_argument('--remote', action='store_true', default=None, help=f"リモートホストで実行する (SSH経由 / DOCKER_HOST=ssh://{REMOTE_HOST_NAME})")
+    parent_parser.add_argument('--remote', action='store_true', default=None, help="リモートホストで実行する (SSH経由 / DOCKER_HOST=ssh://<REP2_REMOTE_HOST>、REP2_REMOTE_HOST と REP2_REMOTE_PATH の両方が必要)")
     parent_parser.add_argument('--noremote', dest='remote', action='store_false', help="ローカルホストで実行する")
     parent_parser.add_argument('--use-remote-yml', action='store_true', help=argparse.SUPPRESS)
 
@@ -319,6 +376,7 @@ def main():
     if argcomplete:
         argcomplete.autocomplete(parser)
     args, extra_args = parser.parse_known_args()
+    args.debug = resolve_debug(args.debug)
 
     execute_command(args.command, args, extra_args)
 

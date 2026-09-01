@@ -22,7 +22,7 @@ cd docker-rep2
 docker compose up -d
 ```
 
-ビルドしたい場合はMakefileを参考にしてください。
+ビルドしたい場合は `./build.py --help` を参照してください。
 
 標準ではカレントディレクトリのrep2-dataにrep2のdataやconf、caddyのcaddy_configやcaddy_dataが格納されます。
 変更したい場合はdocker-compose.ymlを編集してください。
@@ -165,7 +165,16 @@ projdir/
 
 これらの用意をしてvscodeでrep2.code-workspaceを開いてください。
 PHP Debug拡張機能を使ってrep2のデバッグが出来ます。
-Makefileにこれらのコマンドも入れてあるのでそちらを使うと便利です。
+デバッグ付きイメージ (`rep2-dbg`) でビルドする場合は `--debug` を指定してください。既定はデバッグオフで、`.env` に `REP2_BUILD_DEBUG=true` と記載すると `--debug` を省略できます。
+
+リモートホストで操作する場合は、`.env` にリモート先を記載してください。
+
+```text
+REP2_REMOTE_HOST=rep2
+REP2_REMOTE_PATH=docker-rep2
+```
+
+`REP2_REMOTE_HOST` と `REP2_REMOTE_PATH` の両方が設定されている場合にのみ `--remote` が機能します（未設定または片方のみの場合はエラーになります）。`up` / `down` / `pull` / `logs` / `exec` / `config` / `update` / `confdiff` / `prune` は既定でリモート実行です。
 
 ## おまけ
 
