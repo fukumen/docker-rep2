@@ -6,7 +6,6 @@
 [pen/docker-rep2](https://github.com/pen/docker-rep2)のフォークです。
 
 * rep2
-* 2chproxy.pl
 * caddy + PHP 他
 
 ## 使い方
@@ -51,7 +50,7 @@ fukumen/p2-phpを使用しているのであれば[confの変化点](https://git
 
 fukumen/p2-phpを使用する場合、「認証関係のハッシュや暗号化を強化」によりp2_auth_user.phpとconf_user.srd.cgiが従来のrep2では全く読めなくなります。バックアップをとっておいてください。
 
-### 2chproxy.plを使わない場合(推奨)
+### 通常設定
 
 rep2を以下の設定で使う想定です。
 
@@ -62,25 +61,7 @@ use_https: する
 http_post_method: HTTP_Request2コンパチ
 ```
 
-2chproxy.plは動いていても使わずに直接5chに接続するようになります。
-
-### 2chproxy.plを使う場合
-
-rep2を以下の設定で使う想定です。
-
-```
-proxy_use: する
-proxy_host: 127.0.0.1
-proxy_port: 8080
-use_https: しない
-2ch_to_5ch: する
-http_post_method: HTTP_Request2コンパチ
-```
-
-2ch_ssl.subjectと2ch_ssl.postをするにしていると2chproxy.plがほぼ土管になって2chproxy.plの使いたい機能が使えません。
-
-なお、2chproxy.plはデバッグに便利なのでdocker-rep2に残していますが、fukumen/p2-phpであればrep2側で過去ログ倉庫のスクレイピングも実装済みのため、現時点ではproxyは不要になっているはず。
-但し、5ch以外はテスト出来ていないのでトラブルが起きる可能性はあります。
+HTTPリクエストをproxy経由で解析・デバッグしたい場合は[doc/mitmproxy.md](doc/mitmproxy.md)を参照してください。
 
 ## 構成
 
@@ -90,14 +71,6 @@ PHP8に対応した[mikoim/p2-php](https://github.com/mikoim/p2-php)をフォー
 変更したい場合はdocker-compose.ymlを編集してください。
 
 fukumen/p2-phpを使用する場合、「認証関係のハッシュや暗号化を強化」により、environmentにSECRET_KEYの設定が必要です。ホストで openssl rand -hex 32 を実行した結果を記載してください。
-
-### 2chproxy.pl
-
-5chはいつでもhttps接続に対応した[ma8ma/2chproxy.pl](https://github.com/ma8ma/2chproxy.pl)をフォークした[fukumen/2chproxy.pl](https://github.com/fukumen/2chproxy.pl)を使用しています。
-変更したい場合はdocker-compose.ymlを編集してください。
-
-また、2chproxy.plの設定をdocker-compose.ymlに記載できます。
-environmentに設定名にNCPX_を頭に付けて記載してください。
 
 ### PHP
 
@@ -129,14 +102,7 @@ HTTPS接続を有効にしたい場合や証明書に関する設定について
 
 ### ソフトバージョン
 
-```
-ALPINE 3.23
-PHP 8.5
-CADDY 2.11
-COMPOSER 2.9.4
-```
-
-新しそうなのを集めたので気分はいいけどかなり怪しい世界。
+実バージョンは[GitHub Packagesのrep2パッケージページ](https://github.com/fukumen/docker-rep2/pkgs/container/rep2)で確認できます。
 
 ## docker-compose.override.ymlについて
 
@@ -144,7 +110,7 @@ docker-compose.ymlを編集してしまってもよいですが、docker-compose
 
 ## デバッグ方法
 
-通常のビルドではgithubのrep2と2chproxy.plを直接参照してビルドしますが、デバッグ用のビルドではdocker-compose.debug.ymlで指定したパスにrep2と2chproxy.plのソースコードをgit cloneしておき、そのソースコードをコンテナに格納します。
+通常のビルドではgithubのrep2を直接参照してビルドしますが、デバッグ用のビルドではdocker-compose.debug.ymlで指定したパスにrep2のソースコードをgit cloneしておき、そのソースコードをコンテナに格納します。
 
 また、以下のようなvscodeのワークスペースファイルを用意してください。
 
@@ -153,9 +119,6 @@ docker-compose.ymlを編集してしまってもよいですが、docker-compose
 	"folders": [
 		{
 			"path": "p2-php"
-		},
-		{
-			"path": "2chproxy.pl"
 		},
 		{
 			"path": "docker-rep2"
@@ -190,7 +153,6 @@ projdir/
   rep2.code-workspace
   docker-rep2/
   p2-php/
-  2chproxy.pl/
 ```
 
 ソースコードが用意できたら以下のように実行してください。
@@ -213,6 +175,7 @@ ma8ma/2chproxy.plを使えばsubject.txtの件は解決するとは分かった�
 決定的な原因がどれかわからないままですが、5chのread.cgiからの書き込みとなるべく近くなるようにfukumen/p2-phpは修正しています。
 
 なお、fukumen/2chproxy.plの方はほぼma8ma/2chproxy.plから変わっていません。
+docker-rep2への2chproxy.plのインテグレーションは廃止しています。既存のdataでproxy_useを「する」にしてproxy_host: 127.0.0.1 / proxy_port: 8080を設定している場合は、「しない」に変更してください。
 
 5chでスレ読んでテストスレに書くぐらいの確認しかししていません。
 スレ立てはホスト規制の表示まではいけたのでたぶん大丈夫？

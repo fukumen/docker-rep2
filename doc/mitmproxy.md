@@ -4,9 +4,23 @@ HTTPのリクエストをproxy経由でデバッグするときのメモ。
 
 結論：mitmproxyが便利です。
 
+## rep2側の設定
+
+rep2の設定画面でproxy_useを「する」にし、proxy_host / proxy_portにmitmproxyの待ち受けを指定する。mitmproxyを別のPCで起動する場合は、proxy_hostにそのPCのIPアドレスを指定する。
+
+```
+proxy_use: する
+proxy_host: <mitmproxyを起動しているPCのIP>
+proxy_port: 8080
+ssl_verify_peer: しない
+```
+
+Dockerホストと同じPCでmitmproxyを起動する場合は、proxy_hostにhost.docker.internalを指定し、docker-compose.ymlのextra_hostsに「host.docker.internal:host-gateway」を追加する。
+解析後はproxy_useを「しない」に戻すこと。
+
 ## CLI
 
-ssl_verify_peerを「しない」に設定して以下のように起動するとuse_httpsが「する」でも解析できる。
+上記のrep2側設定のとおりssl_verify_peerを「しない」にしておくと、use_httpsが「する」でも解析できる。解析後はssl_verify_peerを「する」に戻すこと。
 
 ```
 docker run --rm -it \

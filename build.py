@@ -15,9 +15,7 @@ DEFAULT_IMAGE_BASE = "ghcr.io/fukumen/rep2"
 LOCAL_IMAGE_BASE = "rep2"
 
 DEFAULT_P2_CONTEXT = "https://github.com/fukumen/p2-php.git#php8-merge-mbstring"
-DEFAULT_PROXY_CONTEXT = "https://github.com/fukumen/2chproxy.pl.git#always-https-for-2ch-config"
 LOCAL_P2_CONTEXT = "../p2-php"
-LOCAL_PROXY_CONTEXT = "../2chproxy.pl"
 LOCAL_TEST_CONTEXT = "../test"
 
 SERVICE_NAME = "rep2php8"
@@ -140,7 +138,6 @@ def execute_command(cmd_name, args, extra_args=None):
         flag_local = "false" if args.ghcr else "true"
         flag_debug = "true" if args.debug else "false"
         context_p2 = DEFAULT_P2_CONTEXT if args.ghcr else LOCAL_P2_CONTEXT
-        context_proxy = DEFAULT_PROXY_CONTEXT if args.ghcr else LOCAL_PROXY_CONTEXT
 
         repo_hash, repo_log = get_git_info(".")
         rep2_hash, rep2_log = get_git_info(context_p2)
@@ -156,7 +153,6 @@ def execute_command(cmd_name, args, extra_args=None):
             "--build-arg", f"REP2_HASH={rep2_hash}",
             "--build-arg", f"REP2_LOG={rep2_log}",
             "--build-context", f"p2-rep2={context_p2}",
-            "--build-context", f"2chproxy.pl={context_proxy}",
             "-f", "docker/Dockerfile",
             "."
         ]

@@ -4,9 +4,8 @@ services:
       context: .
       dockerfile: docker/Dockerfile
       additional_contexts:
-# p2-repと2chproxy.plの参照するgitリポジトリの指定
+# p2-repが参照するgitリポジトリの指定
         p2-rep2: https://github.com/fukumen/p2-php.git#php8-merge-mbstring
-        2chproxy.pl: https://github.com/fukumen/2chproxy.pl.git#always-https-for-2ch-config
       args:
         FLAG_EXTRA: "false"
         FLAG_LOCAL: "false"
@@ -29,9 +28,3 @@ services:
       TZ: "Asia/Tokyo"
 # rep2で使用する暗号キーの指定
       SECRET_KEY: "ホストで openssl rand -hex 32 を実行した結果に置き換えてください"
-# 2chproxy.plの設定
-      NCPX_USER_AGENT: "Monazilla/1.00 (rep2+2chproxy.pl/0.1)"
-      NCPX_ENABLE_ONLY_NCH_IO_UPGRADE: 1
-      NCPX_ALLOW_CONNECT_METHOD: 1
-      NCPX_KEEP_COOKIE : 0
-      NCPX_ENABLE_WEB_SCRAPING : 0

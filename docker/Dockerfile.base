@@ -46,8 +46,10 @@ WORKDIR /tmp
 RUN curl -sS https://getcomposer.org/installer | php -- --version ${COMPOSER_VERSION}
 
 FROM php:${PHP_VERSION}-fpm-alpine${ALPINE_VERSION}
+ARG COMPOSER_VERSION
 # Based on the original work by Abe Masahiro <pen@thcomp.org>
-LABEL org.opencontainers.image.authors="Fukumen <fukumen@gmail.com>" \
+LABEL composer.version=${COMPOSER_VERSION} \
+    org.opencontainers.image.authors="Fukumen <fukumen@gmail.com>" \
     org.opencontainers.image.source="https://github.com/fukumen/docker-rep2"
 
 ARG FLAG_EXTRA
@@ -64,11 +66,6 @@ RUN apk --no-cache add \
             libpng \
             libwebp \
             libavif \
-            perl-http-daemon \
-            perl-lwp-useragent-determined \
-            perl-yaml-tiny \
-            perl-io-socket-ssl \
-            perl-lwp-protocol-https \
             ca-certificates \
             zlib \
             tzdata \

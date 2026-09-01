@@ -28,10 +28,6 @@ RUN mv data data.orig && ln -s /ext/data data
 RUN ln -s /ext/rep2/ic rep2/ic
 RUN ln -s /ext/user_skin rep2/user_skin
 
-COPY --from=2chproxy.pl 2chproxy.pl .
-RUN chmod 755 2chproxy.pl
-RUN mv 2chproxy.pl /usr/local/bin/
-
 FROM rep2-${FLAG_EXTRA}-${FLAG_LOCAL}-${FLAG_DEBUG}
 # Based on the original work by Abe Masahiro <pen@thcomp.org>
 LABEL org.opencontainers.image.authors="Fukumen <fukumen@gmail.com>" \
@@ -59,7 +55,6 @@ RUN apk del git patch \
     && rm -f /tmp/composer.phar \
     && rm -rf /var/cache/apk/* /var/log/apk.log /tmp/pear
 
-COPY --from=builder /usr/local/bin/2chproxy.pl /usr/local/bin/2chproxy.pl
 COPY --from=builder /var/www   /var/www
 COPY rootfs /
 

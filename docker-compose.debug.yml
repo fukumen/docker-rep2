@@ -1,8 +1,5 @@
 services:
   rep2php8:
-    environment:
-      NCPX_LOG_LEVEL: 7
-
 # for Xdebug
     volumes:
       - ./xdebug.ini:/usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini

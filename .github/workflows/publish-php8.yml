@@ -75,7 +75,6 @@ jobs:
           tags: rep2:local
           build-contexts: |
             p2-rep2=https://github.com/fukumen/p2-php.git#php8-merge-mbstring
-            2chproxy.pl=https://github.com/fukumen/2chproxy.pl.git#always-https-for-2ch-config
 
       - name: Extract versions from image
         id: versions
@@ -83,10 +82,12 @@ jobs:
           ALPINE_VER=$(docker run --rm rep2:local cat /etc/alpine-release)
           PHP_VER=$(docker run --rm rep2:local php -r 'echo PHP_VERSION;')
           CADDY_VER=$(docker run --rm rep2:local caddy version | awk '{print $1}')
+          COMPOSER_VER=$(docker inspect rep2:local --format '{{index .Config.Labels "composer.version"}}')
           
           echo "alpine=${ALPINE_VER}" >> "$GITHUB_OUTPUT"
           echo "php=${PHP_VER}" >> "$GITHUB_OUTPUT"
           echo "caddy=${CADDY_VER}" >> "$GITHUB_OUTPUT"
+          echo "composer=${COMPOSER_VER:-unknown}" >> "$GITHUB_OUTPUT"
 
       - name: Generate Date Tag
         id: date
@@ -102,7 +103,6 @@ jobs:
           push: true
           build-contexts: |
             p2-rep2=https://github.com/fukumen/p2-php.git#php8-merge-mbstring
-            2chproxy.pl=https://github.com/fukumen/2chproxy.pl.git#always-https-for-2ch-config
           build-args: |
             REPO_HASH=${{ steps.meta.outputs.REPO_HASH }}
             REPO_LOG=${{ steps.meta.outputs.REPO_LOG }}
@@ -115,10 +115,10 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/rep2:${{ steps.date.outputs.today }}
           labels: |
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
-            org.opencontainers.image.description=Alpine: ${{ steps.versions.outputs.alpine }} / PHP: ${{ steps.versions.outputs.php }} / Caddy: ${{ steps.versions.outputs.caddy }} / rep2: ${{ steps.meta.outputs.REP2_LOG_PLAIN }} (${{ steps.meta.outputs.REP2_HASH }})
+            org.opencontainers.image.description=Alpine: ${{ steps.versions.outputs.alpine }} / PHP: ${{ steps.versions.outputs.php }} / Caddy: ${{ steps.versions.outputs.caddy }} / Composer: ${{ steps.versions.outputs.composer }} / rep2: ${{ steps.meta.outputs.REP2_LOG_PLAIN }} (${{ steps.meta.outputs.REP2_HASH }})
           annotations: |
             index:org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
-            index:org.opencontainers.image.description=Alpine: ${{ steps.versions.outputs.alpine }} / PHP: ${{ steps.versions.outputs.php }} / Caddy: ${{ steps.versions.outputs.caddy }} / rep2: ${{ steps.meta.outputs.REP2_LOG_PLAIN }} (${{ steps.meta.outputs.REP2_HASH }})
+            index:org.opencontainers.image.description=Alpine: ${{ steps.versions.outputs.alpine }} / PHP: ${{ steps.versions.outputs.php }} / Caddy: ${{ steps.versions.outputs.caddy }} / Composer: ${{ steps.versions.outputs.composer }} / rep2: ${{ steps.meta.outputs.REP2_LOG_PLAIN }} (${{ steps.meta.outputs.REP2_HASH }})
           provenance: false
           outputs: type=registry,oci-mediatypes=true
 
@@ -132,7 +132,6 @@ jobs:
           push: true
           build-contexts: |
             p2-rep2=https://github.com/fukumen/p2-php.git#php8-merge-mbstring
-            2chproxy.pl=https://github.com/fukumen/2chproxy.pl.git#always-https-for-2ch-config
           build-args: |
             FLAG_EXTRA=true
             REPO_HASH=${{ steps.meta.outputs.REPO_HASH }}
@@ -146,9 +145,9 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/rep2-extra:${{ steps.date.outputs.today }}
           labels: |
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
-            org.opencontainers.image.description=Alpine: ${{ steps.versions.outputs.alpine }} / PHP: ${{ steps.versions.outputs.php }} / Caddy: ${{ steps.versions.outputs.caddy }} / rep2: ${{ steps.meta.outputs.REP2_LOG_PLAIN }} (${{ steps.meta.outputs.REP2_HASH }})
+            org.opencontainers.image.description=Alpine: ${{ steps.versions.outputs.alpine }} / PHP: ${{ steps.versions.outputs.php }} / Caddy: ${{ steps.versions.outputs.caddy }} / Composer: ${{ steps.versions.outputs.composer }} / rep2: ${{ steps.meta.outputs.REP2_LOG_PLAIN }} (${{ steps.meta.outputs.REP2_HASH }})
           annotations: |
             index:org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
-            index:org.opencontainers.image.description=Alpine: ${{ steps.versions.outputs.alpine }} / PHP: ${{ steps.versions.outputs.php }} / Caddy: ${{ steps.versions.outputs.caddy }} / rep2: ${{ steps.meta.outputs.REP2_LOG_PLAIN }} (${{ steps.meta.outputs.REP2_HASH }})
+            index:org.opencontainers.image.description=Alpine: ${{ steps.versions.outputs.alpine }} / PHP: ${{ steps.versions.outputs.php }} / Caddy: ${{ steps.versions.outputs.caddy }} / Composer: ${{ steps.versions.outputs.composer }} / rep2: ${{ steps.meta.outputs.REP2_LOG_PLAIN }} (${{ steps.meta.outputs.REP2_HASH }})
           provenance: false
           outputs: type=registry,oci-mediatypes=true
