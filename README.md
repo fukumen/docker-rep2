@@ -1,5 +1,13 @@
 # docker-rep2
 
+> [!IMPORTANT]
+> 本リポジトリは [fukumen/p2-php](https://github.com/fukumen/p2-php)（`deploy/docker-rep2`）へ統合されました。archive につき以後更新されません。
+>
+> - 既存イメージを利用している場合: イメージ URL（`ghcr.io/fukumen/rep2` 等）は不変のため、そのまま継続して利用・更新できます。compose ファイルは [fukumen/p2-php の README（`deploy/docker-rep2`）](https://github.com/fukumen/p2-php/tree/main/deploy/docker-rep2)の取得手順に従ってください（本リポジトリの compose ファイルは更新停止）
+> - イメージを自分でビルドしている場合: `fukumen/p2-php` を clone し、`deploy/docker-rep2` で `./build.py` を実行してください
+> - docker-rep2-win 利用者: 対応不要です（イメージ取得は継続。プログラム更新時に新 URL へ切り替わる予定です）
+> - 更新通知（updatan_haahaa）有効環境: 統合後の新イメージに更新するまで、通知が消える／誤って出ることがあります。新イメージ適用後に解消します
+
 ## 概要
 
 以下のソフトのdockerコンテナを作成するDockerfileとdocker-compose.ymlです。
